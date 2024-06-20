@@ -4,10 +4,12 @@ import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody 
 import { useNavigate, useLocation } from 'react-router-dom';
 
 function EditGrantForm() {
-  const { state } = useLocation();
+  const location = useLocation();
   const navigate = useNavigate();
-  const { grant } = state;
   const { isOpen, onOpen, onClose } = useDisclosure();
+  
+  const grant = location.state ? location.state.grant : null;
+  
   const [grantData, setGrantData] = useState({
     title: grant?.title || '',
     destination_id: grant?.destination_id || '',
@@ -85,6 +87,10 @@ function EditGrantForm() {
 
   if (error) {
     return <div>Error loading categories: {error.message}</div>;
+  }
+
+  if (!grant) {
+    return <div>No grant data available</div>;
   }
 
   return (
