@@ -19,9 +19,11 @@ function App() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+    const savedPage = localStorage.getItem('currentPage') || 'grantForm';
+
     if (token) {
       setIsAuthenticated(true);
-      setCurrentPage('grantForm');
+      setCurrentPage(savedPage);
     }
   }, []);
 
@@ -29,12 +31,14 @@ function App() {
     localStorage.setItem('token', token);
     setIsAuthenticated(true);
     setCurrentPage('grantForm');
+    localStorage.setItem('currentPage', 'grantForm');
   };
 
   const handleRegister = (token) => {
     localStorage.setItem('token', token);
     setIsAuthenticated(true);
     setCurrentPage('grantForm');
+    localStorage.setItem('currentPage', 'grantForm');
   };
 
   const handleLogout = async () => {
@@ -58,6 +62,7 @@ function App() {
       console.error('Failed to logout:', error);
     } finally {
       localStorage.removeItem('token');
+      localStorage.removeItem('currentPage');
       setIsAuthenticated(false);
       setCurrentPage('login');
     }
@@ -66,6 +71,7 @@ function App() {
   const handleEditGrant = (grant) => {
     setCurrentGrant(grant);
     setCurrentPage('editGrantForm');
+    localStorage.setItem('currentPage', 'editGrantForm');
   };
 
   const handleViewGrant = (grant) => {
@@ -91,10 +97,15 @@ function App() {
     }
   };
 
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    localStorage.setItem('currentPage', page);
+  };
+
   return (
     <ChakraProvider>
       <Flex direction="column" minHeight="100vh">
-        {isAuthenticated && currentPage !== 'login' && <Header setCurrentPage={setCurrentPage} handleLogout={handleLogout} />}
+        {isAuthenticated && currentPage !== 'login' && <Header setCurrentPage={handlePageChange} handleLogout={handleLogout} />}
         <Box flex="1">
           {isAuthenticated ? (
             currentPage === 'grantForm' ? (

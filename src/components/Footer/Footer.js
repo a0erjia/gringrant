@@ -3,8 +3,8 @@ import { Box, Text } from '@chakra-ui/react';
 
 function Footer() {
   return (
-    <Box as="footer" py={4} bg="gray.100" textAlign="center">
-      <Text>&copy; 2024 GrinGrant. All rights reserved.</Text>
+    <Box bg="gray.100" p={4} textAlign="center" width="100%">
+      <Text>© 2024 ГРИНГРАНТ. Все права защищены.</Text>
     </Box>
   );
 }

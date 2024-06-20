@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Button, Heading, Text, VStack, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, useDisclosure } from '@chakra-ui/react';
-import { StarIcon, CheckIcon } from '@chakra-ui/icons';
+import { StarIcon, CheckIcon, DeleteIcon } from '@chakra-ui/icons';
 
 function History({ handleEditGrant, handleViewGrantProp }) {
   const [history, setHistory] = useState([]);

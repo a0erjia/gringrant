@@ -17,14 +17,14 @@ function Login({ onLogin, setIsRegistering }) {
     setIsLoading(true);
     setError('');
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/auth/login`, {
+      const response = await fetch('http://localhost:8000/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),
       });
 
       if (!response.ok) {
-        throw new Error('Логин или пароль неверны');
+        throw new Error('Invalid credentials');
       }
 
       const result = await response.json();
