@@ -15,4 +15,4 @@ app.add_middleware(
 
 app.include_router(auth.router, prefix="/auth")
 app.include_router(categories.router, prefix="/categories")
-app.include_router(grant.router, prefix="/grants")  # Включите роутер с префиксом /grants
+app.include_router(grant.router, prefix="/grants", tags=["grants"])

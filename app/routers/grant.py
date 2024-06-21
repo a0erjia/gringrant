@@ -222,3 +222,77 @@ def remove_from_favorites(grant_id: str, db: Session = Depends(get_db), token: s
     except Exception as e:
         print(f"Error: {str(e)}")  # Логирование ошибки
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@router.put("/{grant_id}")
+def update_grant(grant_id: str, grant_request: GrantRequest, db: Session = Depends(get_db),
+                 token: str = Depends(oauth2_scheme)):
+    try:
+        user_session = db.query(Session).filter(Session.token == token).first()
+        if not user_session:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+
+        print(f"Received Grant ID: {grant_id}")
+        print(f"User ID from session: {user_session.user_id}")
+
+        existing_request = db.query(Request).filter(Request.id == grant_id).first()
+        if not existing_request:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Grant not found")
+
+        if existing_request.user_id != user_session.user_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+
+        existing_request.title = grant_request.title
+        existing_request.destination_id = grant_request.destination_id
+        existing_request.description = grant_request.description
+        existing_request.goals = grant_request.goals
+        existing_request.social_meaning = grant_request.social_meaning
+        existing_request.target_audience = grant_request.target_audience
+        existing_request.tasks = grant_request.tasks
+        db.commit()
+        db.refresh(existing_request)
+
+        similarities = [
+            pipe.get_similarity_score([grant_request.social_meaning, grant_request.goals]),
+            pipe.get_similarity_score([grant_request.social_meaning, grant_request.tasks]),
+            pipe.get_similarity_score([grant_request.social_meaning, grant_request.target_audience])
+        ]
+
+        classifications = [
+            pipe2.get_class(grant_request.description),
+            pipe2.get_class(grant_request.goals),
+            pipe2.get_class(grant_request.tasks)
+        ]
+
+        label = int(Counter(classifications).most_common(1)[0][0])
+        score = sum(similarities) / len(similarities)
+
+        encoded_label = transform_label(label)
+        label_trues = 0
+
+        for item in classifications:
+            if item == grant_request.destination_id:
+                label_trues += 1
+
+        result = (label_trues / len(classifications) + score) / 2
+
+        existing_project = db.query(Project).filter(Project.request_id == existing_request.id).first()
+        existing_project.estimated_chance = result
+        db.commit()
+        db.refresh(existing_project)
+
+        return {
+            "grant_id": existing_request.id,
+            "title": existing_request.title,
+            "description": existing_request.description,
+            "score": result,
+            "comments": f"Категория: {encoded_label}"
+        }
+
+    except ValidationError as e:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=e.errors())
+
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
