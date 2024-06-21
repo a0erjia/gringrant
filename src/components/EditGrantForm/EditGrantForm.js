@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, FormControl, FormLabel, Input, Select, Textarea, VStack, useDisclosure, Heading } from '@chakra-ui/react';
-import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody } from '@chakra-ui/react';
+import { Box, Button, FormControl, FormLabel, Input, Select, Textarea, VStack, Heading, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody } from '@chakra-ui/react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 function EditGrantForm() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isOpen, setIsOpen] = useState(false);
   
   const grant = location.state ? location.state.grant : null;
   
@@ -22,6 +21,7 @@ function EditGrantForm() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [validationError, setValidationError] = useState(null);
 
   useEffect(() => {
     fetch('http://localhost:8000/categories')
@@ -45,9 +45,22 @@ function EditGrantForm() {
     }));
   };
 
+  const validateForm = () => {
+    if (!grantData.title || !grantData.destination_id || !grantData.description || !grantData.goals || !grantData.social_meaning || !grantData.target_audience || !grantData.tasks) {
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) {
+      setValidationError('Все поля должны быть заполнены.');
+      return;
+    }
     const token = localStorage.getItem('token');
+    console.log('Grant ID:', grant.id); // Логирование ID заявки
+    console.log('Grant Data:', grantData); // Логирование данных заявки
     try {
       const response = await fetch(`http://localhost:8000/grants/${grant.id}`, {
         method: 'PUT',
@@ -65,8 +78,8 @@ function EditGrantForm() {
       const result = await response.json();
       console.log('Update Result:', result);
 
-      // Повторная оценка заявки нейросетью
-      await fetch('http://localhost:8000/grants/evaluate', {
+      // Повторная оценка обновленной заявки без создания новой записи
+      await fetch(`http://localhost:8000/grants/evaluate/${grant.id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -75,22 +88,23 @@ function EditGrantForm() {
         body: JSON.stringify(grantData)
       });
 
-      onOpen();
+      setIsOpen(true);
     } catch (error) {
       console.error(error.message);
+      setError('Не удалось обновить заявку. Пожалуйста, попробуйте снова.');
     }
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>Загрузка. Пожалуйста, подождите...</div>;
   }
 
   if (error) {
-    return <div>Error loading categories: {error.message}</div>;
+    return <div>Не удалось загрузить список категорий. Свяжитесь с системным администратором и назовите ему эту ошибку: {error}</div>;
   }
 
   if (!grant) {
-    return <div>No grant data available</div>;
+    return <div>Данные о грантах в настоящее время недоступны</div>;
   }
 
   return (
@@ -114,8 +128,9 @@ function EditGrantForm() {
         <Heading as="h2" size="lg" mb={4}>
           Редактировать проект
         </Heading>
+        {validationError && <Box color="red.500" mb={4}>{validationError}</Box>}
         <VStack spacing={4} as="form" onSubmit={handleSubmit}>
-          <FormControl id="title">
+          <FormControl id="title" isRequired>
             <FormLabel>Введите название проекта</FormLabel>
             <Input
               type="text"
@@ -125,7 +140,7 @@ function EditGrantForm() {
               onChange={handleChange}
             />
           </FormControl>
-          <FormControl id="destination_id">
+          <FormControl id="destination_id" isRequired>
             <FormLabel>Выберите направление</FormLabel>
             <Select
               name="destination_id"
@@ -140,7 +155,7 @@ function EditGrantForm() {
               ))}
             </Select>
           </FormControl>
-          <FormControl id="description">
+          <FormControl id="description" isRequired>
             <FormLabel>Введите краткое описание проекта</FormLabel>
             <Textarea
               name="description"
@@ -149,7 +164,7 @@ function EditGrantForm() {
               onChange={handleChange}
             />
           </FormControl>
-          <FormControl id="goals">
+          <FormControl id="goals" isRequired>
             <FormLabel>Укажите цели проекта</FormLabel>
             <Textarea
               name="goals"
@@ -158,7 +173,7 @@ function EditGrantForm() {
               onChange={handleChange}
             />
           </FormControl>
-          <FormControl id="social_meaning">
+          <FormControl id="social_meaning" isRequired>
             <FormLabel>Опишите социальную значимость проекта</FormLabel>
             <Textarea
               name="social_meaning"
@@ -167,7 +182,7 @@ function EditGrantForm() {
               onChange={handleChange}
             />
           </FormControl>
-          <FormControl id="target_audience">
+          <FormControl id="target_audience" isRequired>
             <FormLabel>Опишите целевые группы проекта</FormLabel>
             <Textarea
               name="target_audience"
@@ -176,7 +191,7 @@ function EditGrantForm() {
               onChange={handleChange}
             />
           </FormControl>
-          <FormControl id="tasks">
+          <FormControl id="tasks" isRequired>
             <FormLabel>Опишите задачи проекта</FormLabel>
             <Textarea
               name="tasks"
@@ -191,7 +206,7 @@ function EditGrantForm() {
         </VStack>
       </Box>
 
-      <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Заявка успешно обновлена</ModalHeader>

@@ -16,13 +16,14 @@ function GrantForm() {
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [validationError, setValidationError] = useState('');
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const response = await fetch('http://localhost:8000/categories');
         if (!response.ok) {
-          throw new Error('Failed to fetch categories');
+          throw new Error('Не удалось загрузить список категорий');
         }
         const data = await response.json();
         setCategories(data.categories);
@@ -43,8 +44,17 @@ function GrantForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
     setError('');
+    setValidationError('');
+
+    // Check if any field is empty
+    const isEmptyField = Object.values(grantData).some(value => value === '');
+    if (isEmptyField || grantData.destination_id === '') {
+      setValidationError('Пожалуйста, заполните все поля и выберите категорию.');
+      return;
+    }
+
+    setIsLoading(true);
     const token = localStorage.getItem('token');
     try {
       const response = await fetch('http://localhost:8000/grants/evaluate', {
@@ -58,7 +68,7 @@ function GrantForm() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(`Failed to evaluate grant: ${JSON.stringify(errorData.detail)}`);
+        throw new Error(`Не удалось оценить грант. Пожалуйста, скопируйте и передайте техподдержке эту строку: ${JSON.stringify(errorData.detail)}`);
       }
 
       const result = await response.json();
@@ -77,6 +87,12 @@ function GrantForm() {
         <Heading as="h2" size="lg" mb={4}>
           Расскажите нам о проекте, чтобы оценить Ваши шансы
         </Heading>
+        {validationError && (
+          <Alert status="warning">
+            <AlertIcon />
+            {validationError}
+          </Alert>
+        )}
         {error && (
           <Alert status="error">
             <AlertIcon />

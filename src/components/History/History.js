@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Button, Heading, Text, VStack, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, useDisclosure } from '@chakra-ui/react';
-import { StarIcon, CheckIcon, DeleteIcon } from '@chakra-ui/icons';
+import { StarIcon, CheckIcon } from '@chakra-ui/icons';
+import { useNavigate } from 'react-router-dom';
 
-function History({ handleEditGrant, handleViewGrantProp }) {
+function History({ handleEditGrant }) {
   const [history, setHistory] = useState([]);
   const [selectedGrant, setSelectedGrant] = useState(null);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -59,7 +61,6 @@ function History({ handleEditGrant, handleViewGrantProp }) {
         throw new Error('Failed to toggle favorite');
       }
 
-      // Обновляем состояние, чтобы отразить изменения
       setHistory((prevHistory) =>
         prevHistory.map((grant) =>
           grant.id === grantId ? { ...grant, is_bookmarked: !grant.is_bookmarked } : grant
@@ -72,15 +73,15 @@ function History({ handleEditGrant, handleViewGrantProp }) {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div>Загрузка. Пожалуйста, подождите...</div>;
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return <div>Произошла ошибка: {error}</div>;
   }
 
   if (!Array.isArray(history)) {
-    return <div>Invalid data format</div>;
+    return <div>Неверный формат данных</div>;
   }
 
   return (
@@ -152,6 +153,16 @@ function History({ handleEditGrant, handleViewGrantProp }) {
               <Button colorScheme="teal" onClick={onClose}>
                 Закрыть
               </Button>
+              <Button
+  colorScheme="yellow"
+  onClick={() => {
+    handleEditGrant(selectedGrant);
+    navigate('/edit-grant', { state: { grant: selectedGrant } });
+  }}
+  ml={3}
+>
+  Редактировать заявку
+</Button>
               <Button
                 colorScheme={selectedGrant.is_bookmarked ? "green" : "yellow"}
                 onClick={() => handleToggleFavorite(selectedGrant.id, selectedGrant.is_bookmarked)}

@@ -1,10 +1,12 @@
 import React from 'react';
-import logo from '../../assets/images/logo.png';
 import { Box, Flex, IconButton, Link, useDisclosure, Text, Image } from '@chakra-ui/react';
 import { HamburgerIcon, CloseIcon, StarIcon, RepeatIcon, ArrowBackIcon, EditIcon } from '@chakra-ui/icons';
+import { useNavigate } from 'react-router-dom';
+import logo from '../../assets/images/logo.png';
 
-function Header({ setCurrentPage, handleLogout }) {
+function Header({ handleLogout }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const navigate = useNavigate();
 
   return (
     <Box bg="white" px={4} boxShadow="md">
@@ -22,13 +24,13 @@ function Header({ setCurrentPage, handleLogout }) {
             onClick={isOpen ? onClose : onOpen}
           />
           <Flex display={{ base: 'none', md: 'flex' }} ml={10}>
-            <Link px={2} py={1} rounded={'md'} _hover={{ textDecoration: 'none', bg: 'gray.200' }} onClick={() => setCurrentPage('favorites')}>
+            <Link px={2} py={1} rounded={'md'} _hover={{ textDecoration: 'none', bg: 'gray.200' }} onClick={() => navigate('/favorites')}>
               <StarIcon /> Избранное
             </Link>
-            <Link px={2} py={1} rounded={'md'} _hover={{ textDecoration: 'none', bg: 'gray.200' }} onClick={() => setCurrentPage('history')}>
+            <Link px={2} py={1} rounded={'md'} _hover={{ textDecoration: 'none', bg: 'gray.200' }} onClick={() => navigate('/history')}>
               <RepeatIcon /> История
             </Link>
-            <Link px={2} py={1} rounded={'md'} _hover={{ textDecoration: 'none', bg: 'gray.200' }} onClick={() => setCurrentPage('grantForm')}>
+            <Link px={2} py={1} rounded={'md'} _hover={{ textDecoration: 'none', bg: 'gray.200' }} onClick={() => navigate('/grant-form')}>
               <EditIcon /> Оценить
             </Link>
             <Link px={2} py={1} rounded={'md'} _hover={{ textDecoration: 'none', bg: 'gray.200' }} onClick={handleLogout}>
@@ -40,13 +42,13 @@ function Header({ setCurrentPage, handleLogout }) {
 
       {isOpen ? (
         <Box pb={4} display={{ md: 'none' }}>
-          <Link px={2} py={1} rounded={'md'} _hover={{ textDecoration: 'none', bg: 'gray.200' }} onClick={() => setCurrentPage('favorites')}>
+          <Link px={2} py={1} rounded={'md'} _hover={{ textDecoration: 'none', bg: 'gray.200' }} onClick={() => navigate('/favorites')}>
             <StarIcon /> Избранное
           </Link>
-          <Link px={2} py={1} rounded={'md'} _hover={{ textDecoration: 'none', bg: 'gray.200' }} onClick={() => setCurrentPage('history')}>
+          <Link px={2} py={1} rounded={'md'} _hover={{ textDecoration: 'none', bg: 'gray.200' }} onClick={() => navigate('/history')}>
             <RepeatIcon /> История
           </Link>
-          <Link px={2} py={1} rounded={'md'} _hover={{ textDecoration: 'none', bg: 'gray.200' }} onClick={() => setCurrentPage('grantForm')}>
+          <Link px={2} py={1} rounded={'md'} _hover={{ textDecoration: 'none', bg: 'gray.200' }} onClick={() => navigate('/grant-form')}>
             <EditIcon /> Оценить
           </Link>
           <Link px={2} py={1} rounded={'md'} _hover={{ textDecoration: 'none', bg: 'gray.200' }} onClick={handleLogout}>
